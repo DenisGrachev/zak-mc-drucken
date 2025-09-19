@@ -1,0 +1,244 @@
+animateTiles:
+
+    ;laser code
+laserCount: ld a,0 : inc a : ld (laserCount+1),a
+
+;switch on of
+    and 31 : jr nz,1f
+laserSwitch: ld a,1 : xor 1 : ld (laserSwitch+1),a
+    ld a,(mapObjects+1) : or a : call nz, playTeleportSound
+1:
+    ld a,(laserSwitch+1)
+    or a : jr z,1f
+
+    ld a,(laserCount+1): and 7 : ld l,a : ld h,0
+    ld de,tiles_page_2+32*7+21
+    add hl,de : ex de,hl
+    ld hl,tiles+176*29+1   
+    call changeTile
+
+    ld a,(laserCount+1): and 7 : ld l,a : ld h,0
+    ld de,tiles_page_3+24
+    add hl,de : ex de,hl
+    ld hl,tiles+213*29+1   
+    call changeTile
+
+    jr 2f
+1:
+   ;ld de,tiles_page_2+32*7+21+9
+   ;add hl,de : ex de,hl
+   ;ld hl,tiles+176*29+1   
+   ;call changeTile
+2:
+    ;=======================================
+tmp:   
+    ld a,0 : inc a : and 7 : ld (tmp+1),a : ld l,a : ld h,0     
+
+;bg scroll tile
+    ld de,tiles_page_2+32*7
+    add hl,de : ex de,hl
+    ld hl,tiles+190*29+1   
+    call changeTile
+    
+
+;elevator left
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_3+32*6+12
+    add hl,de : ex de,hl
+    ld hl,tiles+116*29+1   
+    call changeTile
+
+;elevator left
+    ld a,(tmp+1) : ld c,a : ld a,7 : sub c : ld h,0 : ld l,a
+    ld de,tiles_page_3+32*6+12
+    add hl,de : ex de,hl
+    ld hl,tiles+117*29+1   
+    call changeTile    
+
+
+;teleport lamp
+
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_2+32*6
+    add hl,de : ex de,hl
+    ld hl,tiles+96*29+1   
+    call changeTile
+
+;lava tile 1
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_2+32*6+8
+    add hl,de : ex de,hl
+    ld hl,tiles+113*29+1   
+    call changeTile
+
+;lava tile 2
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_2+32*6+8+2
+    add hl,de : ex de,hl
+    ld hl,tiles+114*29+1   
+    call changeTile
+
+;lava tile 4
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_2+32*7+8+2
+    add hl,de : ex de,hl
+    ld hl,tiles+221*29+1   
+    call changeTile
+
+;lava tile 4
+    ld a,(tmp+1) : ld h,0 : ld l,a
+    ld de,tiles_page_2+32*7+8+4
+    add hl,de : ex de,hl
+    ld hl,tiles+222*29+1   
+    call changeTile    
+
+;doHideBlockAnimation
+
+hbAnimationTick:    ld a,0 
+
+    ld h,a : add a,a : add h
+    ld h,0 : ld l,a
+
+;================================================    
+    push hl
+    ld de,tiles_page_3+32*6
+    add hl,de : ex de,hl
+    ld hl,tiles+27*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*6+1
+    add hl,de : ex de,hl
+    ld hl,tiles+28*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*6+2
+    add hl,de : ex de,hl
+    ld hl,tiles+29*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================    
+    push hl
+    ld de,tiles_page_3+32*7
+    add hl,de : ex de,hl
+    ld hl,tiles+59*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*7+1
+    add hl,de : ex de,hl
+    ld hl,tiles+60*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*7+2
+    add hl,de : ex de,hl
+    ld hl,tiles+61*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================    
+    push hl
+    ld de,tiles_page_3+32*7+12
+    add hl,de : ex de,hl
+    ld hl,tiles+91*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*7+1+12
+    add hl,de : ex de,hl
+    ld hl,tiles+92*29+1 : call changeTile
+    pop hl
+;================================================
+
+;================================================        
+    push hl
+    ld de,tiles_page_3+32*7+2+12
+    add hl,de : ex de,hl
+    ld hl,tiles+93*29+1 : call changeTile
+    pop hl
+;================================================
+
+
+    ret    
+
+doTmpBlocks:
+    jp doHideBlocks    
+
+doShowBlocks:
+
+    ;make blocks solid
+    ld a,1 : ld (collisions+27),a : ld (collisions+59),a : ld (collisions+91),a
+    ld (collisions+29),a : ld (collisions+61),a : ld (collisions+93),a
+
+    ld a,(hbAnimationTick+1) : inc a : cp 4 : ret z
+    ld (hbAnimationTick+1),a
+
+    ;play Button sound
+    cp 1 : jp z,playButtonSound
+
+  ;  cp 2 : ret nz
+    ;make blocks solid
+  ;  ld a,1 : ld (collisions+27),a : ld (collisions+59),a : ld (collisions+91),a
+  ;  ld (collisions+29),a : ld (collisions+61),a : ld (collisions+93),a
+
+    ret
+
+doHideBlocks:
+
+
+   ;make blocks unsolid
+    xor a : ld (collisions+27),a : ld (collisions+59),a : ld (collisions+91),a
+    ld (collisions+29),a : ld (collisions+61),a : ld (collisions+93),a
+
+    ld a,(hbAnimationTick+1) : or a : ret z
+    dec a
+    ld (hbAnimationTick+1),a
+
+  ;  cp 2 : ret nz
+    ;make blocks unsolid
+  ;  xor a : ld (collisions+27),a : ld (collisions+59),a : ld (collisions+91),a
+  ;  ld (collisions+29),a : ld (collisions+61),a : ld (collisions+93),a
+
+    ret    
+
+
+changeTile:
+
+    ld bc,3
+
+    dup 8
+    ld a,(de) : ld (hl),a
+    inc d : add hl,bc
+    edup
+    ld a,(de) : ld (hl),a
+
+    ret
+
+;графику какого тайла скопировать куда
+;de - откуда
+;hl - куда
+;setTile:    
+;    ld de,tiles_page_2
+    ;ld bc,3
+
+;    ld hl,tiles+29*160+1
+
+    ;dup 8
+    ;ld a,(de) ;: ld (hl),a
+    ;inc d : add hl,bc
+    ;edup
+    ;ld a,(de) ;: ld (hl),a
+;ret        

@@ -1,0 +1,106 @@
+;Elevators code
+
+MAX_ELEVATORS = 8
+
+ELEVATOR_IDLE = 0
+ELEVATOR_WAIT_STATE = 1
+ELEVATOR_MOVE_BACK = 2
+
+
+    STRUCT ELEVATOR  
+
+ENABLED        BYTE
+STATE          BYTE     
+STATE_COUNT    BYTE
+X              BYTE
+Y              BYTE
+TOP_Y	       BYTE
+BOTTOM_Y	   BYTE
+RESTORE_BUFFER      BYTE 3*48 ;ROW BUFFER WITH FULL WIDTH OF LEVEL - PRE FILL IT FROM GAME MAP ON INIT
+
+	ENDS
+
+ELEVATOR_SIZE = 7+3*48
+
+elevatorsList:
+
+    dup MAX_ELEVATORS
+
+        db 0
+        db ELEVATOR_IDLE
+        db 0
+        db 0
+        db 0
+        db 0
+        db 0
+        block 3*48,0
+    edup
+
+        db 255
+
+
+elevatorsPointer:
+    dw elevatorsList
+
+initElevators:
+    ;reset
+    xor a : ld hl,elevatorsList : ld de,ELEVATOR_SIZE : ld (elevatorsPointer),hl
+    ld b,MAX_ELEVATORS
+1:
+    ld (hl),a : add hl,de
+    djnz 1b
+
+
+    ;read elevators from map
+    ld hl,gameMap
+
+    ld d,0
+1:
+    ld e,0
+2:    
+    ld a,(hl) : inc hl
+    cp TILE_ELEVATOR : jr nz,3f
+    ;==================================
+        ld a,ELEVATOR_IDLE : call addElevator    
+    ;==================================
+3:    
+   inc e : ld a,e : cp 64 : jr nz,2b
+
+   inc d : ld a,d : cp 48 : jr nz,1b    
+
+   ret
+
+;e-x,d-y,a-state
+addElevator:       
+    ld ix,(elevatorsPointer)
+    ld (ix),1;enable
+    ld (ix+ELEVATOR.X),e : ld (ix+ELEVATOR.Y),d : ld (ix+ELEVATOR.BOTTOM_Y),d
+    ld (ix+ELEVATOR.STATE),a
+
+    ld a,30 : ld (ix+ELEVATOR.TOP_Y),a
+    ld a,45 : ld (ix+ELEVATOR.BOTTOM_Y),a
+
+    ld bc,ELEVATOR_SIZE : add ix,bc : ld (elevatorsPointer),ix    
+    ret    
+
+doElevators:
+    ld ix,elevatorsList
+doOneElevator    
+    ld a,(ix) : cp 255 : ret z
+    or a : jp z,skipElevator
+;============================================================
+
+;    ld e,(ix+ELEVATOR.X) : ld d,(ix+ELEVATOR.Y)
+;    ld a,(ix+ELEVATOR.BOTTOM_Y) : cp d : jr z,skipElevator
+;    ld a,96 : call fillTileLine
+;    inc d : ld (ix+ELEVATOR.Y),d
+;
+;    ld a,(ix+ELEVATOR.BOTTOM_Y) : cp d : jr z,fixElevator
+;    ld a,TILE_ELEVATOR : call putBigTile : jp skipElevator
+
+;fixElevator:
+;    ld a,TILE_ELEVATOR : call putBigTileCutted
+;============================================================
+skipElevator
+    ld bc,ELEVATOR_SIZE : add ix,bc
+    jp doOneElevator

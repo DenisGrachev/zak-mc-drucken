@@ -1,0 +1,50 @@
+
+introString1: dw 16384+32*2+1 ;ADDR TO DRAW
+            db  "STUPID CHICKENZ!",0
+
+introString2: dw 16384+32*4+1 ;ADDR TO DRAW
+            db  "CAN NOT TELEPORT THEMSELFZ!",0
+
+introString3: dw 16384+32*6+1 ;ADDR TO DRAW
+            db  "ZAK WILL HAVE TO HELP!",0            
+
+introString4: dw 16384+2048+32*0+1 ;ADDR TO DRAW
+            db  "ONZE AGAIN!",0                        
+introString5: dw 16384+2048+32*4+1 ;ADDR TO DRAW
+            db  "AARRRHGHHGHG!",0                 
+
+introString6: dw 16384+4096+32*0+1 ;ADDR TO DRAW
+            db  "RIDICULOUZ!",0                            
+/*
+winString6: dw 16384+4096+32*4+1+18 ;ADDR TO DRAW
+            db  "ADMIRAL ZUK",0                          
+
+levelString: dw 16384+4096+32*6+12 ;ADDR TO DRA
+             db  "LEVEL:01",0  
+*/
+intro:
+    halt
+    call fadeOut
+    ld hl,16384 : ld de,16385 : ld bc,6144-1 : ld (hl),0 : ldir
+    ld hl,22528 : ld de,22529 : ld bc,768-1 : ld (hl),7+64+0*8 : ldir
+    ld ix,introString1 : call drawString 
+    call beep : ld b,10 : call pause
+    
+    ld ix,introString2 : call drawString 
+    call beep : ld b,10 : call pause
+    ld ix,introString3 : call drawString 
+    call beep : ld b,10 : call pause
+    ld ix,introString4 : call drawString 
+    call beep : ld b,10 : call pause
+    ld ix,introString5 : call drawString 
+    call beep : ld b,10 : call pause    
+    ld ix,introString6 : call drawString 
+    call beep : ld b,10 : call pause    
+    ld b,150 : call pause
+    call fadeOut
+    ret
+
+pause:
+    halt
+    djnz pause
+    ret

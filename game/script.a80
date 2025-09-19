@@ -1,0 +1,209 @@
+
+
+;nullScript:
+;    dw nullScriptProcedure
+
+restartLevelScript:
+    dw teleportLine4
+    dw playTeleportSound
+    dw teleportLine3
+    dw playStepSound
+    dw teleportLine2
+    dw playTeleportSound    
+    dw teleportLine1    
+    dw playStepSound    
+    dw hideHero        
+    dw playTeleportSound    
+    dup 12 : dw nullProc : edup
+    dw restartLevel
+
+winLevelScript:
+    dup 8
+    dw nullProc     
+    edup
+
+    dw teleportLine4
+    dw playTeleportSound
+    dw teleportLine3
+    dw playStepSound
+    dw teleportLine2
+    dw playTeleportSound    
+    dw teleportLine1    
+    dw playStepSound    
+    dw hideHero        
+    dw playTeleportSound    
+    dup 12 : dw nullProc : edup
+    dw winLevel    
+
+teleportChickenScript:    
+    dw playPlickSound
+    dup 8 : dw nullProc : edup
+    dw teleportLine4
+    dw playTeleportSound
+    dw teleportLine3
+    dw playTeleportSound
+    dw teleportLine2
+    dw playTeleportSound    
+    dw teleportLine1    
+    dw playTeleportSound
+    dw disableTeleport
+    dw hideObject        
+    dw playTeleportSound    
+    dw stopScript
+
+showHeroScript:
+    dup 12 : dw nullProc : edup
+    dw teleportLine1
+    dw playTeleportSound
+    dw teleportLine2
+    dw playStepSound
+    dw teleportLine3
+    dw playTeleportSound    
+    dw teleportLine4    
+    dw playStepSound
+    dw showHero
+    dw stopScript    
+
+startGameScript:
+    dw nullProc
+    dw playTeleportSound
+    dw nullProc
+    dw playStepSound
+    dw nullProc
+    dw playTeleportSound    
+    dw nullProc
+    dw playStepSound    
+    dw nullProc
+    dw playTeleportSound    
+    dup 12 : dw nullProc : edup
+    dw startGameFromScript
+
+startGameFromScript:
+    ;call fadeOut
+    ;ld hl,16384 : ld de,16385 : ld bc,6912-1 : ld (hl),0 : ldir	
+    ;ld hl,nullProc : ld ()
+    ;depack game tiles
+	;ld hl,packedBaseTiles : ld de,tiles : call depack
+	;init state	
+    ld a,1 : ld (needUnpackTiles+1),a
+;	call initLevel		
+    ld a,GS_RESTART_LEVEL : ld (gameState),a
+    ret
+
+showHero:
+    ld hl,(heroPosition) : ld (sprite0+SPRITE.X),hl;set position      
+    ret
+
+disableTeleport:    
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)    
+    ;push de
+    push de
+    inc d : dec e : push de : ld a,TILE_DISABLED_LAMP: call putTileBothBuffers
+    pop de
+    inc e : inc e : inc e : inc e
+    ld a,TILE_DISABLED_LAMP : call putTileBothBuffers
+    pop de
+    inc d : inc d : inc d
+    ld a,TILE_FAKE_TELEPORT: call putTileBothBuffers
+
+
+    ;pop de
+    ;ld hl,gameMap-restroseBuffer : add hl,de
+
+    ret
+
+teleportLine0:
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)
+    inc d : inc d : inc d
+    push de : ld c,142 : call spawnParticle : pop de
+    inc e
+    push de : ld c,142 : call spawnParticle : pop de
+    inc e
+    push de : ld c,142 : call spawnParticle : pop de
+    ret
+
+teleportLine1:
+    call playStepSound
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)
+    inc d : inc d
+    push de : ld c,141 : call spawnParticle : pop de
+    inc e
+    push de : ld c,142 : call spawnParticle : pop de
+    inc e
+    push de : ld c,143 : call spawnParticle : pop de
+    ret    
+
+teleportLine2:
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)
+    inc d
+    push de : ld c,143 : call spawnParticle : pop de
+    inc e
+    push de : ld c,141 : call spawnParticle : pop de
+    inc e
+    push de : ld c,142 : call spawnParticle : pop de
+    ret    
+    
+
+teleportLine3:
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)    
+    push de : ld c,142 : call spawnParticle : pop de
+    inc e
+    push de : ld c,143 : call spawnParticle : pop de
+    inc e
+    push de : ld c,141 : call spawnParticle : pop de
+    ret        
+
+teleportLine4:
+    ld ix,(currentScriptObject)
+    ld e,(ix+OBJECT.X) : ld d,(ix+OBJECT.Y)    
+    dec d
+    push de : ld c,141 : call spawnParticle : pop de
+    inc e
+    push de : ld c,142 : call spawnParticle : pop de
+    inc e
+    push de : ld c,143 : call spawnParticle : pop de
+    ret           
+
+hideObject:
+    ld ix,(currentScriptObject)
+    ;ld (ix),0;disable
+    ld (ix+OBJECT.Y),48;put off screen
+    ret
+
+hideHero:
+    ld a,48 : ld (sprite0+SPRITE.Y),a
+    ret
+
+currentScriptPointer: dw 00000
+currentScriptObject: dw 00000
+
+
+;hl - script addr
+;ix - param, object pointer
+playScript:
+    ld a,GS_SCRIPT : ld (gameState),a
+    ld (currentScriptPointer),hl
+    ld (currentScriptObject),ix
+    ret
+
+stopScript:
+    ld a,GS_GAMEPLAY : ld (gameState),a
+    ret   
+winLevel:
+    ld a,(currentLevel) : inc a : ld (currentLevel),a
+    cp 21 : jr nz,restartLevel
+    ;call fadeOut
+    ld a,GS_WIN_GAME : ld (gameState),a : ret
+restartLevel:
+    ld a,GS_RESTART_LEVEL : ld (gameState),a
+    ret     
+
+doScript:    
+    ld ix,(currentScriptPointer) : ld l,(ix) : inc ix : ld h,(ix) : inc ix
+    ld (currentScriptPointer),ix
+    jp (hl)

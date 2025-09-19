@@ -1,0 +1,64 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "C:/zx/!Zick-Mac-Kraken/maps/map00.tmx",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "C:/zx/!Zick-Mac-Kraken/maps/map0.tmx": {
+            "scale": 2.24697265625,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 255.89986527011166,
+                "y": 183.13529488461035
+            }
+        },
+        "C:/zx/!Zick-Mac-Kraken/maps/map0.tmx#lirusTileset": {
+            "scaleInDock": 1
+        },
+        "C:/zx/!Zick-Mac-Kraken/maps/map00.tmx": {
+            "scale": 3,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 207.66666666666663,
+                "y": 91.16666666666666
+            }
+        },
+        "C:/zx/!Zick-Mac-Kraken/maps/map00.tmx#tiles": {
+            "scaleInDock": 3
+        },
+        "map.tmx": {
+            "scale": 2,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 255.5,
+                "y": 337.25
+            }
+        },
+        "map.tmx#tiles": {
+            "scaleInDock": 4
+        }
+    },
+    "last.imagePath": "C:/zx/!Zick-Mac-Kraken/maps",
+    "map.height": 64,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 8,
+    "map.tileWidth": 8,
+    "map.width": 64,
+    "openFiles": [
+        "C:/zx/!Zick-Mac-Kraken/maps/map00.tmx"
+    ],
+    "project": "map.tiled-project",
+    "recentFiles": [
+        "C:/zx/!Zick-Mac-Kraken/maps/map00.tmx",
+        "map.tmx",
+        "C:/zx/!Zick-Mac-Kraken/maps/map0.tmx"
+    ],
+    "tileset.embedInMap": true,
+    "tileset.tileSize": {
+        "height": 8,
+        "width": 8
+    }
+}

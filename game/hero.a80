@@ -1,0 +1,409 @@
+
+
+;states
+HERO_IDLE = 0
+HERO_FALL = 1
+HERO_MOVE_LEFT = 2
+HERO_MOVE_RIGHT = 3
+HERO_MOVE_DOWN = 4
+HERO_MOVE_UP = 5
+HERO_LIFT_UP = 6
+HERO_LIFT_DOWN = 7
+HERO_DEAD = 8
+HERO_WIN = 9
+
+
+heroPosition:   
+heroX:
+    db 0
+heroY:
+    db 0    
+
+heroState: db HERO_IDLE
+heroPreState: db HERO_IDLE
+heroCarryObject: db 0
+heroSlide: db 0
+
+;carryObject:     dw chickensList
+
+heroStateCount: db 0
+
+initHero:
+    ;attach to sprite 0
+    ld a,1 : ld (sprite0),a;enable sprite
+    ld hl,(mapObjects+2) : ld (heroPosition),hl
+    ; ld (sprite0+SPRITE.X),hl;set position    
+    ;ld hl,(heroPosition) : ld (sprite0+SPRITE.X),hl;set position
+    ;set some default vars
+    ;===================================================
+    ld a,HERO_IDLE : ld (heroState),a : ld (heroPreState),a
+    ;face direction
+  ;  ld hl,tiles_page_2 : ld (sprite0+SPRITE.ANIM_ADDR),hl
+    ld a,(heroX) : cp 32 : jr c,1f
+    ld hl,tiles_page_2+3*4 : ld (sprite0+SPRITE.ANIM_ADDR),hl
+1:
+    ;===================================================
+    xor a : ld (heroStateCount),a : ld (heroCarryObject),a : ld (heroSlide),a
+    ret
+
+    ;action states    
+doActionStates:
+    ld a,(heroState)
+;=======================================================================
+    cp HERO_MOVE_RIGHT
+    jp nz,1f  
+    ;MOVE RIGHT STATE    
+    ;ld de,(heroPosition) : inc e : inc d : inc d : ld c,142 : call spawnParticle
+    ;ld a,-1 : ld (carryDeltaX+1),a : ld a,-1 :  ld (carryDeltaY+1),a
+    ld a,(heroX) : inc a : ld (heroX),a            
+    ld a,(heroStateCount) : dec a : ld (heroStateCount),a    
+    or a : ret nz;not end of state       
+    ld a,HERO_IDLE : ld (heroState),a    
+    ;call playStepSound             
+    ld a,(heroSlide) : or a : call z,playStepSound 
+    ld hl,tiles_page_2+0*3 : ld (sprite0+SPRITE.ANIM_ADDR),hl : jp waitState
+    ret
+1:    
+;=======================================================================  
+    cp HERO_MOVE_LEFT
+    jp nz,1f  
+    ;MOVE LEFT STATE    
+    ld a,(heroX) : dec a : ld (heroX),a      
+  ;  ld de,(heroPosition) : dec d : inc e : call attachCarryObject  
+    ld a,(heroStateCount) : dec a : ld (heroStateCount),a    
+    or a : ret nz;not end of state      
+    ld a,(heroSlide) : or a : call z,playStepSound 
+    ld a,HERO_IDLE : ld (heroState),a             
+    ld hl,tiles_page_2+4*3 : ld (sprite0+SPRITE.ANIM_ADDR),hl: jp waitState
+    ret 
+1:    
+;=======================================================================  
+    cp HERO_LIFT_UP
+    jp nz,1f  
+    ;MOVE ON LIFT UP
+
+  ;  ld de,(heroPosition) : dec d : dec d : dec d : dec e : call attachCarryObject
+
+    ld de,(heroPosition) : inc d : inc d : ld a,TILE_ELEVATOR : call putBigTile
+    ld a,(heroY) : dec a : ld (heroY),a        
+    ld a,(heroStateCount) : dec a : ld (heroStateCount),a    
+    or a : ret nz;not end of state       
+    ;call playStepSound 
+    ld a,HERO_IDLE : ld (heroState),a             
+;    ld hl,tiles_page_2+4*3 : ld (sprite0+SPRITE.ANIM_ADDR),hl:
+    ;jp waitState
+    ret 
+1: 
+;=======================================================================  
+    cp HERO_LIFT_DOWN
+    jp nz,1f  
+    ;MOVE ON LIFT DOWN
+    ;ld de,(heroPosition) : ld a,96 : call fillTileLine
+    ld de,(heroPosition) : inc d : call restoreTile
+    ld de,(heroPosition) : inc d : inc d : inc d : inc d : ld a,TILE_ELEVATOR : call putBigTileCutted
+    ld a,(heroY) : inc a : ld (heroY),a        
+    ld a,(heroStateCount) : dec a : ld (heroStateCount),a    
+    or a : ret nz;not end of state       
+    ;call playStepSound 
+    ld a,HERO_IDLE : ld (heroState),a             
+;    ld hl,tiles_page_2+4*3 : ld (sprite0+SPRITE.ANIM_ADDR),hl:
+    ;jp waitState
+    ret 
+1: 
+    ret
+
+
+    ;get state
+getState:
+    ld a,(heroStateCount) : or a : ret nz
+
+    ;check if idle state then get controls
+  ;  ld a,(heroState) : cp HERO_IDLE_LEFT : jp z,waitState
+  ;  ld a,(heroState) : cp HERO_IDLE_RIGHT : ret nz
+
+waitState:
+
+     ld de,(heroPosition) : inc d : inc d : inc d : call getTileType
+     CP COL_NULL : jr nz,1f
+      ;other objects collision
+     ld de,(heroPosition) : inc d : inc d : inc d : call checkObject : cp 255 : jp nz,1f
+;     ld a,255 : ld (heroStateCount),a
+     ld a,HERO_FALL : ld (heroState),a : ret
+1:
+;==============================================
+    xor a : ld (heroSlide),a
+     ;slide right     
+    ld de,(heroPosition) : inc d : inc d : inc d : call getTile
+     cp TILE_RIGHT : jr nz,1f
+     ld a,1 : ld (heroSlide),a
+     jp moveRight
+1:    
+;==============================================
+     ;slide left
+    ld de,(heroPosition) : inc d : inc d : inc d : call getTile
+     cp TILE_LEFT : jr nz,1f
+     ld a,1 : ld (heroSlide),a
+     jp moveLeft
+1:    
+;==============================================
+     ;right key     
+     ld a,(rightKey) : or a : jr z,1f           
+moveRight:     
+     ld de,tiles_page_2+0*3 : ld (sprite0+SPRITE.ANIM_ADDR),de : ld (idleSpriteAddr+1),de    
+     ;carry object delta
+     ld a,-1 : ld (carryDeltaX+1),a : ld a,-1 :  ld (carryDeltaY+1),a
+     ld a,+3 : ld (dropDeltaX+1),a       
+     ;check collisions
+     ld de,(heroPosition) : inc e : inc e : inc e : call getTileType
+     cp COL_NULL : jr nz,1f
+     ;other objects collision
+     ld de,(heroPosition) : inc e : inc e : inc e : call checkObject : cp 255 : jp nz,1f
+    ;attach sprites and fix camera
+     ld a,(heroSlide) : or a : jr nz,2f
+     ld de,tiles_page_2+32*3+0*3 : ld (sprite0+SPRITE.ANIM_ADDR),de     
+     ld a,(heroPreState) : cp HERO_MOVE_RIGHT : jr z,2f
+     ld a,3: ld (sprite0+SPRITE.TICK),a
+2:                  
+;    ld a,+3 : ld (ancherX+1),a    
+     ld a,3 : ld (heroStateCount),a
+     ld a,HERO_MOVE_RIGHT : ld (heroState),a       
+     ret
+1:     
+;==============================================
+     ;left key     
+     ld a,(leftKey) : or a : jr z,1f   
+moveLeft:             
+     ld de,tiles_page_2+4*3 : ld (sprite0+SPRITE.ANIM_ADDR),de : ld (idleSpriteAddr+1),de    
+     ;carry object delta
+     ld a,+1 : ld (carryDeltaX+1),a : ld a,-1 :  ld (carryDeltaY+1),a
+     ld a,-3 : ld (dropDeltaX+1),a     
+     ;check collisions
+     ld de,(heroPosition) : dec e : call getTileType    
+     cp COL_NULL : jr nz,1f     
+    ;other objects collision
+     ld de,(heroPosition) : dec e: dec e : dec e : call checkObject : cp 255 : jp nz,1f
+    ;attach sprites and fix camera
+     ld a,(heroSlide) : or a : jr nz,2f
+     ld de,tiles_page_2+32*3+4*3 : ld (sprite0+SPRITE.ANIM_ADDR),de          
+     ld a,(heroPreState) : cp HERO_MOVE_LEFT : jr z,2f
+     ld a,3: ld (sprite0+SPRITE.TICK),a
+2:    
+     ;ld a,(cameraX) : cp 3 : jr c,3f
+     ;ld a,-3 : ld (ancherX+1),a   
+;3:
+     ld a,3 : ld (heroStateCount),a
+     ld a,HERO_MOVE_LEFT : ld (heroState),a        
+     ret
+1:     
+;==============================================
+     ;up key     
+     ld a,(upKey) : or a : jr z,1f     
+     ld de,(heroPosition) : dec d : dec d : dec d : call checkObject : cp 255 : jp nz,1f
+     ;check elevator
+     ld de,(heroPosition) : inc d : inc d : inc d : call getTile
+     cp TILE_ELEVATOR : jp nz,1f     
+     ld de,(heroPosition) : dec d : call getTileType
+     cp COL_NULL : jp nz,1f
+     ld a,3 : ld (heroStateCount),a
+     ld a,HERO_LIFT_UP : ld (heroState),a        
+     ld hl,liftSound : call playSound
+     ret
+1:   
+;==============================================
+     ;down key     
+     ld a,(downKey) : or a : jr nz,1f     
+     ld hl,(idleSpriteAddr+1) : ld (sprite0+SPRITE.ANIM_ADDR),hl
+1:     
+     ld a,(downKey) : or a : jr z,1f     
+     ;check elevator
+     ld de,(heroPosition) : inc e : ld a,d : add 5 : ld d,a : call getTile
+     cp TILE_ELEVATOR_ROPE : jp nz,notElevator     
+     ld a,3 : ld (heroStateCount),a
+     ld a,HERO_LIFT_DOWN : ld (heroState),a        
+     ld hl,liftSound : call playSound     
+     ret
+notElevator:
+    ;try sit down
+idleSpriteAddr:    
+    ld de,tiles_page_2:
+    ld hl,2048+256+32*3 : add hl,de
+    ld (sprite0+SPRITE.ANIM_ADDR),hl
+1:        
+;==============================================
+     ;fire key
+     ;ld a,(fireKey) : or a : jr z,1f     
+    call getFireKey : or a : ret z;r z,1f
+    ld a,(heroCarryObject) : or a : jr nz,dropObject
+     ;check object to take
+     jp tryGrabObject     
+dropObject:
+;     xor a : ld (heroCarryObject),a
+;     ld hl,(heroPosition) : ld a,l
+;dropDeltaX: add 0 : ld l,a     
+;     ;get objects addr
+;     ld ix,(carryObject+2)
+;     ld (ix+OBJECT.X),l : ld (ix+OBJECT.Y),h
+;     ld hl,grabSound : jp playSound 
+;1:     
+
+
+     ;Нельзя ставить в стену
+     ld de,(heroPosition)
+
+    ;if down key then add some
+    ld a,(downKey) : or a : jr z,1f
+    inc d : inc d : inc d
+1:
+
+    ld a,e
+
+dropDeltaX: add 0 : ld e,a
+    
+    ld (dropObjectPosition+1),de
+
+     call getTileType : cp COL_NULL : jp nz,1f;ret nz
+
+dropObjectPosition: ld de,00000
+
+;=========================================================
+    ;можно ставить d другой обьект
+    call checkObject : cp 255 : jp nz,1f;ret nz
+
+    ;можно ставить на другой обьект
+    ;inc d : inc d : inc d : call checkObject : cp 255 : jp nz,1f
+
+    ;Нельзя ставить на воздух
+    ;ld de,(dropObjectPosition+1)
+    ;inc d : inc d : inc d : call getTileType : cp COL_NULL : ret z
+;1:
+;    ld de,(dropObjectPosition+1)
+ ;   call checkObject : cp 255 : ret nz
+;=========================================================
+
+     xor a : ld (heroCarryObject),a
+     ld ix,(carryObject+2)
+     ld (ix+OBJECT.X),e : ld (ix+OBJECT.Y),d
+
+    ;поставили на телепорт - убираем 
+    ld de,(dropObjectPosition+1)
+    inc d : inc d : inc d : call getTile : cp TILE_TELEPORT : jr nz,1f
+    ld hl,teleportChickenScript : call playScript
+1:    
+     ld hl,grabSound : jp playSound 
+
+ ;   ret
+
+;de - position to check
+;return else not free 255 - free
+checkObject:
+    ld ix,gameObjects : ld bc,4    
+reObject:    
+    ld a,(ix) : cp 255 : ret z
+    or a : jp z,nextObject
+    ld a,(IX+OBJECT.X) : cp e : jp nz,nextObject
+    ld a,(IX+OBJECT.Y) : cp d : ret z; in a - something but not 255, so we find object
+nextObject    
+    add ix,bc : jp reObject
+    
+
+tryGrabObject:    
+
+;check object at DE position
+    ld hl,(heroPosition)
+;if down key then add some
+    ld a,(downKey) : or a : jr z,1f
+    inc h : inc h : inc h
+1:
+
+    ld a,(dropDeltaX+1) : add l : ld l,a
+    push hl : pop de
+    ;нельзя взять если над тобой обьект
+;    dec d : dec d : dec d : call checkObject : cp 255 : ret nz
+
+;stupid chickens only 3 objects
+N=1;chikcens starts from 1 zero it's a hero
+    dup 4
+    ld a,(mapObjects+N*4) : or a : jp z,1f
+    ld a,(mapObjects+N*4+OBJECT.X) : cp l : jp nz,1f
+    ld a,(mapObjects+N*4+OBJECT.Y) : cp h : jp nz,1f
+    ;grab chicken
+    ld a,1 : ld (heroCarryObject),a
+    ld de,mapObjects+N*4 : ld (carryObject+2),de
+    ld hl,grabSound : jp playSound    
+1:
+N=N+1
+    edup
+
+    ret
+
+
+doGravity:
+    call gravityStep
+gravityStep:
+    ld a,(heroState) : cp HERO_FALL : ret nz     
+    ld de,(heroPosition) : inc d : inc d : inc d : call getTileType
+    CP COL_NULL : jr nz,1f
+    ;other objects collision
+    ld de,(heroPosition) : inc d : inc d : inc d : call checkObject : cp 255 : jp nz,1f
+    ;================
+
+     ld a,(heroY) : inc a : ld (heroY),a    
+
+    ;================
+    ret
+1:
+    ld a,HERO_IDLE : ld (heroState),a
+    ld hl,landSound : call playSound
+
+    ret
+
+
+doCarryObject:
+    ld a,(heroCarryObject) : or a : ret z
+carryObject:    
+    ld ix,00000
+    ld a,(heroX)    
+carryDeltaX: add 0
+    ld (ix+2),a 
+    ld a,(heroY)    
+carryDeltaY: add 0
+    ld (ix+3),a     
+    ret
+
+doHero:   
+
+
+    ;do carry object
+    ;call doCarryObject
+    
+    ;track states changes
+    ;=====================================
+    ld a,(heroState) : ld (heroPreState),a
+    ;=====================================
+
+
+    call doGravity
+
+    ld a,(heroState) : cp HERO_FALL : jr z,1f
+    ;if falling skip actions
+    call getState    
+    call doActionStates
+1:
+
+    ;PLAY START FALL SOUND
+     ld a,(heroState) : cp HERO_FALL : jr nz,1f
+     ld a,(heroPreState) : cp HERO_FALL : jr z,1f
+     ld hl,startFallSound : call playSound
+1:     
+   
+    ;process sprite
+    ld hl,(heroPosition) : ld (sprite0+SPRITE.X),hl
+    ;camera
+    ld hl,(heroPosition) : ld (cameraTarget),hl
+
+    ;process carry object
+    call doCarryObject
+
+    ret
+
+ 

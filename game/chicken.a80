@@ -1,0 +1,57 @@
+
+CHICKEN_DEAD = 0
+CHICKEN_IDLE_LEFT = 1
+CHICKEN_IDLE_RIGHT = 2
+
+initChickens:
+
+    ld ix,chickensList
+    ld iy,sprite1
+
+    ld b,4
+reInitChicken:    
+    ;if disabled - skip
+    ld a,(ix) : or a : jr z,1f
+    ;ok enabled - apply
+    ld (iy),1
+    ;tiles_page_3
+    ld hl,tiles_page_3
+    ld a,(ix) : cp CHICKEN_IDLE_LEFT : jr nz,2f
+    ld hl,tiles_page_3+3*4
+2:
+    ld (iy+SPRITE.ANIM_ADDR),l : ld (iy+SPRITE.ANIM_ADDR+1),h
+
+    ld a,(ix+2) : ld (iy+SPRITE.X),a
+    ld a,(ix+3) : ld (iy+SPRITE.Y),a
+    ld de,SPRITE_SIZE
+    add iy,de    
+    jp 3f
+1:    
+    ld (ix+3),48
+3:    
+    ld de,4
+    add ix,de    
+    
+    djnz reInitChicken
+
+    ret
+
+doChickens:
+
+    ld ix,chickensList
+    ld iy,sprite1
+
+N=0
+    dup 4
+    ld ix,chickensList+N*4
+    ld iy,sprite1+N*SPRITE_SIZE
+    ld a,(ix) : or a : jr z,2f        
+    ld e,(ix+2) : ld d,(ix+3)
+    ld (iy+SPRITE.X),e : ld (iy+SPRITE.Y),d    
+    inc d : inc d : call getTile : cp TILE_BUTTON : jr nz,2f
+	ld hl,doShowBlocks : ld (doTmpBlocks+1),hl   
+2:    
+N=N+1
+    edup
+
+    ret

@@ -1,0 +1,61 @@
+
+currentLevel: db START_LEVEL
+    db 0
+
+gameMaps:
+	dw map01,map01,map02,map03,map04,map05,map07,map14,map06,map15,map08,map10,map09,map11,map12,map13,map16,map18,map19,map17,map20
+map01:	
+	incbin "maps/map01.tmx.objects"
+	incbin "maps/map01.tmx.mapa.exo"	
+map02:	
+	incbin "maps/map02.tmx.objects"
+	incbin "maps/map02.tmx.mapa.exo"		
+map03:	
+	incbin "maps/map03.tmx.objects"
+	incbin "maps/map03.tmx.mapa.exo"			
+map04:	
+	incbin "maps/map04.tmx.objects"
+	incbin "maps/map04.tmx.mapa.exo"			
+map05:	
+	incbin "maps/map05.tmx.objects"
+	incbin "maps/map05.tmx.mapa.exo"			
+
+map06:	
+	incbin "maps/map06.tmx.objects"
+	incbin "maps/map06.tmx.mapa.exo"	
+
+map07:	
+	incbin "maps/map07.tmx.objects"
+	incbin "maps/map07.tmx.mapa.exo"						
+
+map08:	
+	incbin "maps/map08.tmx.objects"
+	incbin "maps/map08.tmx.mapa.exo"						
+
+map09:	
+	incbin "maps/map09.tmx.objects"
+	incbin "maps/map09.tmx.mapa.exo"						
+
+map10:	
+	incbin "maps/map10.tmx.objects"
+	incbin "maps/map10.tmx.mapa.exo"
+
+map11:	
+	incbin "maps/map11.tmx.objects"
+	incbin "maps/map11.tmx.mapa.exo"							
+
+map12:	
+	incbin "maps/map12.tmx.objects"
+	incbin "maps/map12.tmx.mapa.exo"							
+
+map13:	
+	incbin "maps/map13.tmx.objects"
+	incbin "maps/map13.tmx.mapa.exo"							
+
+map14:	
+	incbin "maps/map14.tmx.objects"
+	incbin "maps/map14.tmx.mapa.exo"							
+
+map15:	
+	incbin "maps/map15.tmx.objects"
+	incbin "maps/map15.tmx.mapa.exo"							

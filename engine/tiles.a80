@@ -1,0 +1,166 @@
+drawTile
+tiles:
+    incbin "maps/tilesMenu.scr.bin"
+;d-y e-x
+fillTileLine:
+    ex af,af
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a
+
+    ;ld a,96;clear tile
+    ex af,af
+    ld (hl),a : inc l : ld (hl),a : inc l : ld (hl),a
+    ret
+
+;dy-coords
+;restore bg under this tile
+restoreTile:
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a    
+    ;hl - points to gamemap
+
+    ld e,l : ld d,h;gamemap to DE
+    xor a
+    ld bc,gameMap-restoreBuffer : sbc hl,bc
+    ;HL - point to source restore buffer
+    ;DE - to gameMap
+
+   ; ld a,d : sub h : ld iyl,a; high bytes delta
+
+    ;map step
+    ld bc,64
+    dup 3    
+
+    push hl : push de
+
+    dup 3
+    ld a,(hl) : ld (de),a 
+    inc l : inc e
+    edup
+    org $-2    
+    pop hl
+    add hl,bc
+    ex de,hl
+    pop hl
+    add hl,bc
+    edup
+    
+    ret
+
+;d-y e-x
+;a-sprite frame
+;de - coords e,-x ,d-y
+putBigTile:
+
+    ex af,af
+    
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a
+
+    ;hl - point where put
+    ex af,af
+    ld de,64-3+1 
+
+    ld b,160;TOP TILES
+
+N=0    
+    dup 3    
+    ld (hl),a     
+    inc l : inc a 
+N=N+1    
+    edup
+    org $-2
+    add hl,de
+    add 32-3+1
+
+    dup 3    
+    ld (hl),a  
+    inc l : inc a
+N=N+1    
+    edup
+    org $-2
+
+    add hl,de
+    add 32-3+1
+    dup 3
+    ld (hl),a 
+1:       
+    inc l : inc a
+N=N+1    
+    edup
+    org $-2
+
+    ret
+
+;d-y e-x
+;a-sprite frame
+;de - coords e,-x ,d-y
+;Cut last line, need for elevators
+putBigTileCutted:
+
+    ex af,af
+    
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a
+
+    ;hl - point where put
+    ex af,af
+
+    ld de,64-3+1 
+
+    ld b,160;TOP TILES
+
+N=0    
+    dup 3    
+    ld (hl),a     
+    inc l : inc a 
+N=N+1    
+    edup
+    org $-2
+    add hl,de
+    add 32-3+1
+
+    dup 3    
+    ld (hl),a  
+    inc l : inc a
+N=N+1    
+    edup
+    org $-2
+
+    ret
+    
+
+
+
+;29 bytes per tile
+;for multicolor will be plus 12
+/*
+drawTile0:   
+;захардкотить графику тайла
+    ld (hl),01111110b ;10 0*3
+    inc h     ;4
+    ld (hl),10000001b ;10 1*3
+    inc h     ;4
+    ld (hl),10000001b ;10 2*3
+    inc h     ;4
+    ld (hl),10000001b ;10 3*3
+    inc h     ;4
+    ld (hl),10000001b ;10 4*3
+    inc h     ;4
+    ld (hl),10000001b ;10 5*3
+    inc h     ;4
+    ld (hl),10000001b ;10 6*3
+    inc h     ;4
+    ld (hl),01111110b ;10 7*3
+    ;color buffer
+    ld h,b ;4 - to COLOR BUFFER
+    ld (hl),1*8+0 ;10  8*3 
+    ;restore h
+    ld h,c;4
+    inc l ;4 - to next hl
+    ret ;10 to next proc
+*/

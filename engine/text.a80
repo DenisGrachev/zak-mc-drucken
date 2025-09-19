@@ -1,0 +1,122 @@
+
+levelStrings: db "00","01","02","03","04","05","06","07","08","09","10"
+              db "11","12","13","14","15","16","17","18","19","20"
+
+pushFireString: dw 16384+4096+32*6+12 ;ADDR TO DRAW
+            db  "PUSH FIRE",0
+
+winString1: dw 16384+32*2+1 ;ADDR TO DRAW
+            db  "INCOMING MESSAGE:",0
+
+winString2: dw 16384+32*6+1 ;ADDR TO DRAW
+            db  "WELL DONE, ZAK!",0
+
+winString3: dw 16384++2048+32*0+1 ;ADDR TO DRAW
+            db  "YOU HAVE TELEPORT ALL CHICKENS!",0            
+
+winString4: dw 16384+2048+32*4+1 ;ADDR TO DRAW
+            db  "THANK YOU FOR YOU SERVICE!",0                        
+
+winString5: dw 16384+4096+32*0+1 ;ADDR TO DRAW
+            db  "HAVE A REST!",0                            
+
+winString6: dw 16384+4096+32*4+1+18 ;ADDR TO DRAW
+            db  "ADMIRAL ZUK",0                          
+
+levelString: dw 16384+4096+32*6+12 ;ADDR TO DRA
+             db  "LEVEL:01",0    
+beepFast:
+    ld bc,10 : ld d,60 : call doBeep
+    ld bc,10 : ld d,70 : call doBeep
+    ld bc,10 : ld d,80 : call doBeep
+    ld bc,10 : ld d,90 : call doBeep
+    ld bc,10 : ld d,10 : call doBeep
+    ret
+beep:
+    ld bc,10 : ld d,100 : call doBeep
+    ld bc,10 : ld d,120 : call doBeep
+    ld bc,10 : ld d,10 : call doBeep
+    ld bc,10 : ld d,200 : call doBeep
+    ld bc,10 : ld d,20 : call doBeep
+    ld b,50
+1:
+    halt
+    djnz 1b    
+    ret
+doBeep:
+
+;    di
+    ;ld bc,250;bc-длительность
+  ;  ld a,r : and 7;бордюр
+    xor a
+b_begin: 
+    xor 16
+    out (254),a
+    ;ld d,100 ;частота
+b_pause: 
+    dec d
+    jr nz,b_pause
+    dec bc
+    ld d,a : ld a,b
+    or c
+    ld a,d
+    jr nz,b_begin
+;    ei
+
+    ret
+
+doBlink:
+    ld a,0 : inc a : and 15 : ld (doBlink+1),a
+    cp 9 : jr c,1f
+    ld hl,22528+22*32 : ld de,22528+22*32+1 : ld bc,63 : ld (hl),0 : ldir    
+;   cp 9 : jp z,playStepSound
+    ret
+1:        
+showText:
+    ld hl,22528+22*32 : ld de,22528+22*32+1 : ld bc,63 : ld (hl),7+64+0*8 : ldir
+    ;or a : jp z,playStepSound
+    ret
+
+font=15616;            
+;ix-string
+drawString:    
+    ld e,(ix) : inc ix : ld d,(ix) : inc ix
+reLetter:    
+;==============================================================
+    ld a,(ix) : or a : ret z
+;==============================================================    
+    push de         
+
+    sub 32 : add a,a : ld l,a : ld h,0 : add hl,hl : add hl,hl
+    ld bc,font : add hl,bc : ex de,hl
+
+    dup 4
+    ld a,(de)             
+    ld (hl),a     
+    inc h
+    ld (hl),a     
+    inc e
+    inc h    
+    edup
+    org $-1
+    call DOWN_HL
+
+    dup 4
+    ld a,(de)             
+    ld (hl),a     
+    inc h
+    ld (hl),a     
+    inc e
+    inc h    
+    edup
+    org $-2
+
+    pop de : inc e
+    inc ix : jp reLetter
+;==============================================================    
+
+DOWN_HL:        inc h : ld a,h : and 7 : ret nz
+                ld a,l : add 32 : ld l,a
+                ret c
+                ld a,h : sub 8 : ld h,a
+                ret

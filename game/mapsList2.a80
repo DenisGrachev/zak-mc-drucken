@@ -1,0 +1,19 @@
+map16:	
+	incbin "maps/map16.tmx.objects"
+	incbin "maps/map16.tmx.mapa.exo"							
+
+map17:	
+	incbin "maps/map17.tmx.objects"
+	incbin "maps/map17.tmx.mapa.exo"							
+
+map18:	
+	incbin "maps/map18.tmx.objects"
+	incbin "maps/map18.tmx.mapa.exo"							
+
+map19:	
+	incbin "maps/map19.tmx.objects"
+	incbin "maps/map19.tmx.mapa.exo"							
+
+map20:	
+	incbin "maps/map20.tmx.objects"
+	incbin "maps/map20.tmx.mapa.exo"							

@@ -1,0 +1,167 @@
+
+TILE_ELEVATOR = 24
+TILE_ELEVATOR_ROPE = 89
+
+TILE_TELEPORT = 104
+
+TILE_DISABLED_LAMP = 97
+TILE_FAKE_TELEPORT = 154
+
+TILE_LAVA = 253
+TILE_LASER = 176
+TILE_LASER_H = 213
+
+TILE_BUTTON = 122
+
+TILE_LEFT = 116
+TILE_RIGHT = 117
+
+    align 256
+mapLines:        
+N=0
+    dup 48
+        dw gameMap+N*64
+N=N+1        
+    edup            
+
+;    align 256
+;restoreBufferLines:        
+;N=0
+;    dup 48
+;        dw restoreBuffer+N*64
+;N=N+1        
+;    edup        
+
+COL_NULL = 0
+COL_SOLID = 1
+COL_DEAD = 2
+
+initLevel:
+    ;ld hl,nullProc : ld (intProc+1),a
+	call fadeOut
+    ld hl,16384 : ld de,16385 : ld bc,6912-1 : ld (hl),0 : ldir	
+needUnpackTiles: ld a,0 : or a : jr z,1f
+    ld hl,packedBaseTiles : ld de,tiles : call depack
+    xor a : ld (needUnpackTiles+1),a
+1:    
+    ;show hero script	
+	ld ix,mapObjects : ld hl,showHeroScript : call playScript	
+
+	ld a,(currentLevel) : add a,a : ld e,a : ld d,0 : ld hl,gameMaps : add hl,de
+    push de
+	ld a,(hl) : inc hl : ld h,(hl) : ld l,a
+	ld de,mapObjects : ld bc,20 : ldir
+	ld de,gameMap
+	
+	call depack
+	ld hl,gameMap : ld de,restoreBuffer : ld bc,64*48 : ldir
+
+    pop de
+    ;coy level name
+    ld hl,levelStrings : add hl,de : ld a,(hl) : ld (levelString+8),a : inc hl : ld a,(hl) : ld (levelString+9),a
+initLevelWithoutUnpack:
+	;first render flag
+	ld a,1 : ld (firstRender+1),a ;: ld (laserSwitch+1),a
+	ld a,2 : ld (intFirstRender),a
+
+	call initSprites
+	call initHero
+	call initCamera
+	call initChickens	
+	call initParticles
+
+	;move camera to hero and reset tmp blocks
+	ld hl,doHideBlocks : ld (doTmpBlocks+1),hl
+	ld hl,(heroPosition) : ld (cameraTarget),hl
+	ld b,64
+1:	
+	call doTmpBlocks
+	call doCamera : djnz 1b
+	
+    ld ix,levelString : call drawString
+    ld hl,22528+22*32 : ld de,22528+22*32+1 : ld bc,63 : ld (hl),7+64+0*8 : ldir
+    ;call showText
+   ; call beepFast
+
+	ret
+
+
+;============ Collisions Code ===========
+;X - e
+;Y - d
+
+putTile:
+    ex af,af : ld h,high mapLines : ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl) : ld l,a : ld d,0 : add hl,de
+    ex af,af : ld (hl),a
+    ret
+;de-coords
+putTileBothBuffers:    
+    ex af,af : ld h,high mapLines : ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl) : ld l,a : ld d,0 : add hl,de
+    
+    xor a ; clear flags
+    ex af,af : ld (hl),a
+
+    ld de,gameMap-restoreBuffer : sbc hl,de : ld (hl),a
+
+    ret
+
+;retruns tile in A
+getTile:
+    ld h,high mapLines : ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl) : ld l,a : ld d,0 : add hl,de
+    ld a,(hl)
+    ret
+
+;return collisons type and in L-tile
+getTileType:
+    ld h,high mapLines : ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl) : ld l,a : ld d,0 : add hl,de
+    ld l,(hl)
+    ld h,high collisions
+    ld a,(hl)
+    ret    
+
+    align 256
+collisions: 
+    incbin "maps/map.tmx.collisions"
+
+    align 256
+priorities: 
+    incbin "maps/map.tmx.pri"    
+
+    align 256    
+restoreBuffer:
+packedBaseTiles:    incbin "maps/tiles.exo"
+    include "game/intro.a80"	
+    block 3072-($-packedBaseTiles),0
+	;incbin "maps/map.tmx.mapa"
+depackBuffer:    
+   block 64*4,0
+
+    align 256
+gameMap:
+   incbin "maps/map.tmx.mapa"
+
+   block 64*4,0
+
+    STRUCT OBJECT
+
+STATE          BYTE     
+STATE_COUNT    BYTE
+X	           BYTE      
+Y
+	ENDS
+
+;objects list
+;0-STATE
+;1-STATE COUNT
+;2-X
+;3-Y
+chickensList = $+4
+boxesList = $+4+5*4
+gameObjects = $+4
+mapObjects:
+    incbin "maps/map.tmx.objects"
+    db 255
+    display "mapObjects: ",/d, mapObjects
+;buffer for default restore   
+   ;block 64*3,0
+

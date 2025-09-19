@@ -1,0 +1,25 @@
+outro:
+    halt
+    call fadeOut
+    ld hl,16384 : ld de,16385 : ld bc,6144-1 : ld (hl),0 : ldir
+    ld hl,22528 : ld de,22529 : ld bc,768-1 : ld (hl),7+64+0*8 : ldir
+    ld ix,winString1 : call drawString 
+    call beep
+    ld ix,winString2 : call drawString
+    call beep    
+    ld ix,winString3 : call drawString
+    call beep
+    ld ix,winString4 : call drawString
+    call beep
+    ld ix,winString5 : call drawString
+    call beep
+    ld ix,winString6 : call drawString
+    call beep
+outroLoop:
+    halt
+
+	ld a,r : and 7 : out (254),a
+	;ld bc,448 : call DELAY
+;	xor a : out (254),a
+
+    jp outroLoop

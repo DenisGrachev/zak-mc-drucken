@@ -1,0 +1,35 @@
+BOX_DEAD = 0
+BOX_IDLE = 1
+
+TILE_BOX = 12
+
+initBoxes:
+
+    ld ix,boxesList
+    ld iy,sprite4
+
+    ld b,8
+reInitBoxes:
+    
+    ;if disabled - skip
+    ld a,(ix) : or a : jr z,1f
+    ;ok enabled - apply
+    ld (iy),1
+
+    ;box tile
+    ;ld hl,tiles+29*TILE_BOX+1
+    ;ld (iy+SPRITE.ADDR),l : ld (iy+SPRITE.ADDR+1),h
+     ld a,TILE_BOX : ld (iy+SPRITE.FRAME),a
+
+
+    ld a,(ix+2) : ld (iy+SPRITE.X),a
+    ld a,(ix+3) : ld (iy+SPRITE.Y),a
+    ld de,4
+    add ix,de
+    ld de,SPRITE_SIZE
+    add iy,de
+    
+1:
+    djnz reInitBoxes
+
+    ret

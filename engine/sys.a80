@@ -1,0 +1,129 @@
+
+;interrupt code
+;================interrupt enable===================
+IMON:       
+       ld a,195
+       
+       ld (#bfbf),a
+       ld (#bfbf+1),hl
+
+       ld hl,#be00
+       ld a,h
+       ld de,#be01
+       ld bc,256
+       ld (hl),#bf
+
+       ldir
+
+       LD    I,A
+       IM 2
+       ei
+       ret
+
+nullProc:
+	ret    
+
+fadeOut:
+        ;ld hl,nullProc : ld (intProc+1),a
+        ld a,7        
+1:        
+        push af        
+        ;ld e,a : add a,a : add a,a : add a,a : add e : add 64
+        ld hl,22528 : ld de,22529 : ld bc,767 : ld (hl),a : ldir
+        dup 2
+        halt
+        edup
+         
+        pop af
+        dec a
+        jr nz,1b
+        ld hl,22528 : ld de,22529 : ld bc,767 : ld (hl),a : ldir
+        dup 2
+        halt
+        edup
+
+; 	LD   B,7
+;L1      LD   HL,#5800
+;L2      LD   A,(HL)
+;        AND  7
+;        JR   Z,L3
+;        DEC  (HL)
+;L3      LD   A,(HL)
+;        AND  #38
+;        JR   Z,L4
+;        LD   A,(HL)
+;        SUB  8
+;        LD   (HL),A
+;L4      INC  HL
+;        LD   A,H
+;        CP   #5B
+;        JR   NZ,L2
+;        HALT
+;        HALT
+;        DJNZ L1
+
+
+        ret
+
+mainInterrupt:                
+; preserve all registers
+        push    af
+        push    bc
+        push    de
+        push    hl
+        ex      af, af'
+        exx
+        push    af
+        push    bc
+        push    de
+        push    hl
+        push    ix
+        push    iy
+;========================================  
+
+intProc: call nullProc    
+
+;========================================
+;restore all registers
+        pop     iy
+        pop     ix
+
+        pop     hl
+        pop     de
+        pop     bc
+        pop     af
+        exx
+        ex      af, af'
+        pop     hl
+        pop     de
+        pop     bc
+        pop     af
+
+        ei
+        ret
+
+; Z80 delay routine
+; by Jan Bobrowski, license GPL, LGPL
+DELAY:  ; wait bc T (including call; bc>=141)
+	; destroys: af, bc, hl
+	ld hl, -141
+	add hl, bc
+	ld bc, -23
+_loop	add hl, bc
+	jr c, _loop
+	ld a, l
+	add a, 15
+	jr nc, _g0
+	cp 8
+	jr c, _g1
+	or 0
+_g0	inc hl
+_g1	rra
+	jr c, _b0
+	nop
+_b0	rra
+	jr nc, _b1
+	or 0
+_b1	rra
+	ret nc
+    ret

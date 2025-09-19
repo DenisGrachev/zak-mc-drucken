@@ -1,0 +1,9 @@
+
+randomTable:
+    align 256
+        incbin "game/random256.bin"
+
+getRandom:
+    ld hl,randomTable : inc l : ld (getRandom+1),hl
+    ld a,(hl)
+    ret

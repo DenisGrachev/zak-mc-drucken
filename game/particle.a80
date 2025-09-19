@@ -1,0 +1,86 @@
+;some simple static particles code
+
+
+    STRUCT PART
+TICK             BYTE ;TICK = 0 - disabled     
+BASE_FRAME       BYTE ;tile frame
+RESTORE_TILE     BYTE ;tile to restore
+X                BYTE ;x
+Y                BYTE ;y   
+	ENDS
+
+PART_SIZE = 5
+
+partsList:
+    block 16*PART_SIZE
+    db 255
+
+initParticles:
+    ld hl,partsList : ld (currentParticle),hl :  ld de,partsList+1 : ld bc,16*PART_SIZE-1 : ld (hl),0 : ldir
+    ret
+/*
+restoreParticles:
+    ld ix,partsList : ld bc,PART_SIZE
+rePart:    
+    ld a,(ix) : cp 255 : ret z
+    or a : jp z,restoreNextPart
+    ;================================
+    ;tick down
+    dec a : ld (ix),a
+    ;put restore tile back
+
+    ;================================
+restoreNextPart:    
+    add ix,bc : jp rePart
+*/
+
+doParticles:
+    ld ix,partsList : ld bc,PART_SIZE
+doPart:    
+    ld a,(ix) : cp 255 : ret z
+    or a : jp z,doNextPart
+    ;================================
+    ;tick down
+    dec a : ld (ix),a
+    inc (ix+PART.BASE_FRAME)
+    or a : jp nz,1f
+    ;end of life
+
+    ;restore from restore buffer
+    ld h,high mapLines
+    ld a,(ix+PART.Y) : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add (ix+PART.X) : ld l,a
+    
+    ;hl - points to gamemap
+    ld e,l : ld d,h;gamemap to DE
+    xor a
+    push bc : ld bc,gameMap-restoreBuffer : sbc hl,bc : pop bc
+    ;HL - point to source restore buffer
+    ;DE - to gameMap
+
+    ld a,(hl) : ld (de),a
+    jp doNextPart
+1:
+    ;put restore tile back
+    ;calc map addr and put to gamemap
+    ld h,high mapLines
+    ld a,(ix+PART.Y) : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add (ix+PART.X) : ld l,a
+    ld a,(ix+PART.BASE_FRAME) : ld (hl),a
+    ;================================
+doNextPart:    
+    add ix,bc : jp doPart
+    
+currentParticle: dw partsList
+
+; de - xy , c - start frame
+spawnParticle:    
+    ld ix,(currentParticle) : ld a,(ix) : cp 255 : jr nz,1f
+    ;reset list to start
+    ld ix,partsList
+1:
+    ld (ix+PART.TICK),8
+    ld (ix+PART.BASE_FRAME),c
+    ld (ix+PART.X),e : ld (ix+PART.Y),d
+    ld bc,PART_SIZE : add ix,bc 
+    ld (currentParticle),ix
+
+    ret    

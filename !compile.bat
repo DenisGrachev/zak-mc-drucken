@@ -1,0 +1,1 @@
+sjasmplus.exe --msg=war --syntax=abfw main.asm

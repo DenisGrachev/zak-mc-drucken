@@ -1,0 +1,279 @@
+        align 256
+tilesMapperFull:
+N=0
+    dup 256
+        db low (drawTile+N*29)
+N=N+1        
+    edup
+N=0
+    dup 256
+        db high (drawTile+N*29)
+N=N+1        
+    edup
+
+intFirstRender: db 0
+
+int_frame_0:  
+ ;   ld a,3 : out (254),a
+    IFNDEF PENTAGON
+	ld bc,14000+224*7 : call DELAY	
+    ELSE
+    ld bc,14000+224*7+2000+224*8 : call DELAY	
+    ENDIF
+
+    ;call processMap0
+    
+    ld a,(intFirstRender) : or a : ret nz
+	
+	call doSounds
+    ;now IX point to sound
+
+  ;  ld a,1 : out (254),a
+
+	;now IX point to sound
+	;pre init
+	ld b, high (22528+256*0) : ld hl,16384 : ld c,h	
+	;start render list 0
+    ld (rtStack0+1),sp : ld sp,renderList0 : ret
+rtStack0:
+	ld sp,00000
+	;xor a : out (254),a	
+
+    ret
+    
+int_frame_1:
+    ld a,(intFirstRender) : or a : jr z,1f
+    dec a : ld (intFirstRender),a : ret
+1:
+	call doSounds
+  ;  ld a,0 : out (254),a
+	;pre init
+	ld b, high (22528+256*1) : ld hl,16384+2048+32*3 : ld c,h	
+	;start render list 1
+    ld (rtStack1+1),sp : ld sp,renderList1 : ret
+rtStack1:
+	ld sp,00000
+
+    ret
+
+processMap0:
+
+
+    ld (pm0_stack+1),sp
+
+viewAddr:
+    ld hl,gameMap : ld bc,31 : add hl,bc : ex hl,de
+
+
+    ld h,high tilesMapperFull       
+
+    ld iyl,8
+    exx : ld hl,row0End : ld bc,66 : ld sp,hl : exx    
+rep0_0:    
+;==============================================
+    dup 16        
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld c,(hl) : inc h : ld b,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld b,(hl) : dec h : ld c,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+    edup
+        org $-1           
+;========================================================
+    ex de,hl : ld bc,64+31: add hl,bc: ex de,hl
+    exx : add hl,bc : ld sp,hl : exx
+    dec iyl : jp nz,rep0_0
+
+
+
+    ld iyl,3
+    exx : ld hl,row8End : ld bc,66 : ld sp,hl : exx    
+rep0_1:    
+;==============================================
+    dup 16        
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld c,(hl) : inc h : ld b,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld b,(hl) : dec h : ld c,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+    edup
+        org $-1           
+;========================================================
+    ex de,hl : ld bc,64+31: add hl,bc: ex de,hl
+    exx : add hl,bc : ld sp,hl : exx
+    dec iyl : jp nz,rep0_1
+
+pm0_stack:
+    ld sp,0000
+
+    ret
+
+
+
+processMap1:
+    ld (pm1_stack+1),sp
+
+
+    ld hl,(viewAddr+1) : ld bc,31+64*11 : add hl,bc : ex hl,de
+
+
+    ld h,high tilesMapperFull       
+
+    ld iyl,5
+    exx : ld hl,row11End : ld bc,66 : ld sp,hl : exx    
+rep1_0:    
+;==============================================
+    dup 16        
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld c,(hl) : inc h : ld b,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld b,(hl) : dec h : ld c,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+    edup
+        org $-1           
+;========================================================
+    ex de,hl : ld bc,64+31: add hl,bc: ex de,hl
+    exx : add hl,bc : ld sp,hl : exx
+    dec iyl : jp nz,rep1_0
+
+
+
+    ld iyl,6
+    exx : ld hl,row16End : ld bc,66 : ld sp,hl : exx    
+rep1_1:    
+;==============================================
+    dup 16        
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld c,(hl) : inc h : ld b,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+
+        ;  7          4
+        ld a,(de) : ld l,a
+        ;  7          4        7      
+        ld b,(hl) : dec h : ld c,(hl)
+        ; 11
+        push bc
+        ; 4
+        dec e
+    edup
+        org $-1           
+;========================================================
+    ex de,hl : ld bc,64+31: add hl,bc: ex de,hl
+    exx : add hl,bc : ld sp,hl : exx
+    dec iyl : jp nz,rep1_1
+
+pm1_stack:
+    ld sp,0000
+
+    ret    
+
+;Сразу ссылки на адреса процедур
+;Ставим стек на начало и RET будет просто переходит сразу на адрес
+;В конце переход на выход и восстановление стека
+
+VIEW_X=0
+WIDTH=16
+
+middleThird:
+    ld b, high (22528+256*1) : ld hl,16384+2048 : ld c,h	
+    ret
+bottomThird:
+    ld b, high (22528+256*2) : ld hl,16384+4096 : ld c,h	
+    ret    
+
+sound:
+    ;ret
+  ;  exx : ld a,(hl) : out (254),a : inc l: exx
+    ld a,(ix) : inc ix : out (254),a
+    ret
+
+renderList0:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup  
+row0End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row1End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row2End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row3End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row4End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row5End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255: edup
+row6End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row7End:    
+    dw middleThird
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row8End:    
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row9End:        
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row10End:        
+    dw rtStack0 ;exit from render    
+
+renderList1:   
+   dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row11End    
+   dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row12End        
+    dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row13End        
+   dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row14End        
+  dw sound :  dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+row15End        
+    dw  bottomThird
+ dw sound : dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup        
+row16End        
+ dw sound :   dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+ dw sound :   dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+ dw sound :   dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255: edup
+ dw sound :   dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup
+ dw sound :   dup WIDTH : dw drawTile+29*255 : dw drawTile+29*255 : edup        
+;    dup 5 : dw drawTile0 : dw drawTile1 : edup
+    
+
+    dw rtStack1 ;exit from render    

@@ -1,0 +1,93 @@
+
+cameraPosition:
+cameraX:
+    db 0
+cameraY
+    db 0    
+
+doCamera:
+    call doCameraX
+    call doCameraY
+    ret
+
+cameraTarget:
+cameraTargetX: db 0
+cameraTargetY: db 0
+
+TILE_LIMIT = 159
+
+initCamera:
+    ld hl,gameMap : ld (viewAddr+1),hl
+
+    ld b,48
+    ld d,0
+3:
+    ld e,0
+2:
+    ld a,(hl) : cp TILE_LIMIT : jp z,4f            
+    inc hl 
+    inc e : ld a,e : cp 64 : jr nz,2b
+    inc d
+    djnz 3b
+4:
+
+    ld a,e : sub 32 : ld (rightLimit+1),a
+    ;ld a,2 : ld (bottomLimit+1),a
+    ld a,d : sub 22 : ld (bottomLimit+1),a
+
+
+    xor a : ld (cameraX),a : ld (cameraY),a : ret
+
+doCameraX:
+    ld hl,(cameraPosition)
+    
+    ld a,(cameraTargetX)
+    
+ancherX: add 0    
+
+    ;if less than min
+    sub 14 : ret c    
+    cp l : ret z
+    jp c,tryMoveCameraLeft
+    jp tryMoveCameraRight
+
+    ret
+
+doCameraY
+ ld hl,(cameraPosition)
+    
+    ld a,(cameraTargetY)
+    
+;ancherX: add 0    
+
+    ;if less than min
+    sub 9 : ret c    
+    cp h : ret z
+    jp c,tryMoveCameraUp
+    jp tryMoveCameraDown
+    ret    
+
+tryMoveCameraRight:
+    ld a,(cameraX)
+rightLimit:    cp 64-32
+    ret z
+    inc a : ld (cameraX),a    
+    ld hl,(viewAddr+1) : ld de,1 : add hl,de : ld (viewAddr+1),hl
+    ret
+tryMoveCameraLeft:
+    ld a,(cameraX) : or a : ret z
+    dec a : ld (cameraX),a
+    ld hl,(viewAddr+1) : ld de,-1 : add hl,de : ld (viewAddr+1),hl
+    ret
+tryMoveCameraUp:
+    ld a,(cameraY) : or a : ret z
+    dec a : ld (cameraY),a
+    ld hl,(viewAddr+1) : ld de,-64 : add hl,de : ld (viewAddr+1),hl
+    ret
+tryMoveCameraDown:
+    ld a,(cameraY) 
+bottomLimit:    cp 48-22 
+    ret z
+    inc a : ld (cameraY),a    
+    ld hl,(viewAddr+1) : ld de,64 : add hl,de : ld (viewAddr+1),hl
+    ret            

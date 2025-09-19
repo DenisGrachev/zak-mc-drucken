@@ -1,0 +1,270 @@
+
+    include "engine/keyboardLib.a80"
+;controls functions
+
+
+;controls matrix
+
+leftKey:    db 0
+rightKey:    db 0
+upKey:    db 0
+downKey:    db 0
+fireKey: db 0
+restartKey: db 0
+
+cheatKey:   db 0
+pauseKey:   db 0
+
+
+wasFireUp: db 0
+wasDownUp: dw 0
+
+
+lastKey:    db 0
+
+initControls:
+    ;reset state
+    ld hl,0 : ld (leftKey),hl : ld (upKey),hl : ld (fireKey),hl : ld (cheatKey),hl
+    ret
+
+getFireKey:
+    ld a,(fireKey) : or a : ret z
+    ld a,(wasFireUp) : or a : ret z    
+    xor a : ld (wasFireUp),a
+    ld a,1 : ret
+
+doControls:
+
+    call initControls
+
+    call GetKey
+    ld a,l : ld (lastKey),a
+
+
+
+;read current state to array
+
+    ld hl,fireKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 4,a : jr z,1f
+    ;ld (hl),1
+;1:     
+   ;space
+      LD    BC,32766
+      IN    A,(C)
+      BIT 0,A
+      jr nz,1f
+      ld (hl),1
+1:
+      ;M
+      LD    BC,32766
+      IN    A,(C)
+      BIT 2,A 
+      jr nz,1f
+      ld (hl),1
+1:
+      ;0
+      LD    BC,61438
+      IN    A,(C)
+      BIT 0,A
+      jr nz,1f
+      ld (hl),1
+1:
+  	;5
+      LD    BC,63486
+      IN    A,(C)
+      BIT 4,A
+      jr nz,1f
+      ld (hl),1
+1:
+
+    ;put fire up flag
+      ld a,(hl) : or a : jr nz,1f
+      ld a,1 : ld (wasFireUp),a
+1:
+    
+    ;keyboard moving controls
+    ld hl,rightKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 0,a : jr z,1f
+    ;ld (hl),1
+;1:
+
+    ld a,(lastKey)
+
+    ;LD    BC,57342
+    ;P
+    ;IN    A,(C)
+    ;BIT 0,A
+    cp "p"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+    ;7
+	;LD    BC,61438
+    ;IN    A,(C)
+    ;BIT 3,A
+    cp "7"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+	;2
+    ;LD    BC,63486
+    ;IN    A,(C)
+    ;BIT 1,A
+    cp "2"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+
+    ld hl,leftKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 1,a : jr z,1f
+    ;ld (hl),1
+;1:    
+    ;O
+    ;LD    BC,57342
+    ;IN    A,(C)
+    ;BIT 1,A
+    cp "o"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+    ;6
+	;LD    BC,61438
+    ;IN    A,(C)
+    ;BIT 4,A
+    cp "6"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+    ;1
+    ;LD    BC,63486
+    ;IN    A,(C)
+    ;BIT 0,A
+    cp "1"
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+
+    ld hl,upKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 3,a : jr z,1f
+    ;ld (hl),1
+    ;1:
+;extra kempston
+    ;ld hl,upKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 5,a : jr z,1f
+    ;ld (hl),1
+;1:
+
+    ;Q
+    ld bc,64510
+    in a,(c)
+    BIT 0,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+    ;R Restart
+    BIT 3,A
+    jr nz,3f 
+    ld a,1 : ld (restartKey),a : jr 1f
+3:    
+    ;T NECT
+    BIT 4,A
+    jr nz,1f 
+    ;E
+    BIT 2,A
+    jr nz,1f 
+    ld a,1 : ld (cheatKey),a    
+1:  
+
+    ;9
+	LD    BC,61438
+    IN    A,(C)
+    BIT 1,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+ ;4
+    LD    BC,63486
+    IN    A,(C)
+    BIT 3,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+    ld hl,downKey
+    ;kempston
+    ;ld a,(haveKempston) : or a : jr z,1f
+    ;ld bc,31 : in a,(c) : bit 2,a : jr z,1f
+    ;ld (hl),1
+;1:
+    ;A
+    ld bc,65022
+    in a,(c)
+    BIT 0,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+    ;8
+	LD    BC,61438
+    IN    A,(C)
+    BIT 2,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:
+
+ ;3
+    LD    BC,63486
+    IN    A,(C)
+    BIT 2,A
+    jr nz,1f 
+    ld (hl),1 ;10t
+1:   
+
+     ;put down up flag
+      ld a,(hl) : or a : jr nz,1f
+      ld a,1 : ld (wasDownUp),a
+1:
+
+    ret
+
+
+haveKempston:	db 0
+
+kempstonTest:
+	EI
+	HALT
+	LD E,0
+	LD BC,#001F
+	IN B,(C)
+	LD A,B
+	RLCA
+	RET C
+	LD A,B
+	AND 3
+	CP 3
+	RET Z
+	LD A,B
+	RRCA
+	RRCA
+	AND 3
+	CP 3
+	RET Z
+	LD E,1
+	ld a,e
+	ld (haveKempston),a;1 - if have it
+	DI
+	RET

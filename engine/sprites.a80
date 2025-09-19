@@ -1,0 +1,404 @@
+    
+;Рендер трёх тайликов из спрайта    
+    MACRO RENDER_SPRITE_LINE
+
+;======================================
+    ld bc,3
+    dup 8
+        ld a,(de) : ld (hl),a
+        inc d : add hl,bc
+    edup
+    ld a,(de) : ld (hl),a
+;======================================    
+    inc e
+    ld bc,29 : add hl,bc
+;======================================
+    ld bc,-3    
+    ld a,(de) : ld (hl),a
+    dup 8
+        dec d : add hl,bc
+        ld a,(de) : ld (hl),a        
+    edup
+;======================================    
+    inc e
+    ld bc,29 : add hl,bc
+;======================================
+    ld bc,3
+    dup 8
+        ld a,(de) : ld (hl),a
+        inc d : add hl,bc
+    edup
+    ld a,(de) : ld (hl),a
+;======================================    
+
+
+    ENDM
+
+
+    STRUCT SPRITE   
+
+ENABLED        BYTE     
+X   	       BYTE
+Y	           BYTE      
+FRAME          BYTE  
+TICK           BYTE  
+ENABLED_ANIMATION     BYTE  
+ADDR           WORD
+ANIM_ADDR      WORD
+RESTORE_BUFFER      BYTE 9
+
+	ENDS
+
+SPRITE_SIZE = 10+9
+
+    align 256
+spritesTable:
+sprite0:
+    db 0;Enabled Flag (CHANGE)
+    db 0;X (CHANGE)
+    db 48;Y (CHANGE)
+    db 160;frame    
+    db 0;tick   
+    db 1;animation
+    dw tiles+29*160+1;super tiles addr
+    dw tiles_page_2 ;(CHANGE)
+    block 9,0
+sprite1:
+    db 0;Enabled Flag (CHANGE)
+    db 27;X (CHANGE)
+    db 9;Y (CHANGE)
+    db 163;frame    
+    db 1;tick   
+    db 1;animation
+    dw tiles+29*163+1;super tiles addr
+    dw 0 ;(CHANGE)    
+    block 9,0
+sprite2:
+    db 0;Enabled Flag (CHANGE)
+    db 18;X (CHANGE)
+    db 18;Y (CHANGE)
+    db 166;frame    
+    db 2;tick   
+    db 1;animation
+    dw tiles+29*166+1;super tiles addr
+    dw 0 ;(CHANGE)
+    block 9,0
+sprite3:
+    db 0;Enabled Flag (CHANGE)
+    db 9;X (CHANGE)
+    db 8;Y (CHANGE)
+    db 169;frame    
+    db 3;tick   
+    db 1;animation
+    dw tiles+29*169+1;super tiles addr
+    dw tiles+29*12+1 ;(CHANGE)      
+    block 9,0
+
+sprite4:
+    db 0;Enabled Flag (CHANGE)
+    db 10;X (CHANGE)
+    db 0;Y (CHANGE)
+    db 172;frame    
+    db 0;tick   
+    db 1;animation
+    dw tiles+29*172+1;super tiles addr
+    dw tiles_page_2 ;(CHANGE)
+    block 9,0
+
+;=UNANIMATED=================================================
+/*    
+sprite5:
+    db 0;Enabled Flag (CHANGE)
+    db 13;X (CHANGE)
+    db 1;Y (CHANGE)
+    db 175;frame    
+    db 1;tick   
+    db 0;animation
+    dw tiles+29*175+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)    
+    block 9,0
+sprite6:
+    db 0;Enabled Flag (CHANGE)
+    db 16;X (CHANGE)
+    db 2;Y (CHANGE)
+    db 178;frame    
+    db 2;tick   
+    db 0;animation
+    dw tiles+29*178+1;super tiles addr
+    dw tiles_page_2 ;(CHANGE)
+    block 9,0
+sprite7:
+    db 0;Enabled Flag (CHANGE)
+    db 19;X (CHANGE)
+    db 3;Y (CHANGE)
+    db 181;frame    
+    db 3;tick   
+    db 0;animation
+    dw tiles+29*181+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)          
+    block 9,0
+
+sprite8:
+    db 0;Enabled Flag (CHANGE)
+    db 21;X (CHANGE)
+    db 4;Y (CHANGE)
+    db 181;frame    
+    db 3;tick   
+    db 0;animation
+    dw tiles+29*181+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)          
+    block 9,0
+
+sprite9:
+    db 0;Enabled Flag (CHANGE)
+    db 24;X (CHANGE)
+    db 5;Y (CHANGE)
+    db 181;frame    
+    db 3;tick   
+    db 0;animation
+    dw tiles+29*181+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)          
+    block 9,0
+
+sprite10:
+    db 0;Enabled Flag (CHANGE)
+    db 27;X (CHANGE)
+    db 6;Y (CHANGE)
+    db 181;frame    
+    db 3;tick   
+    db 0;animation
+    dw tiles+29*181+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)          
+    block 9,0
+
+sprite11:
+    db 0;Enabled Flag (CHANGE)
+    db 30;X (CHANGE)
+    db 7;Y (CHANGE)
+    db 181;frame    
+    db 3;tick   
+    db 0;animation
+    dw tiles+29*181+1;super tiles addr
+    dw tiles_page_3 ;(CHANGE)          
+    block 9,0                
+*/
+    db 255
+
+;disable all
+initSprites:    
+    xor a : ld hl,spritesTable : ld de,SPRITE_SIZE    
+    ld b,5;4+8
+1:
+    ;disble
+    ld (hl),a : add hl,de
+    ;clear buffers
+    djnz 1b
+  ;  ld hl,spritesTable+1 : ld de,spritesTable : ld bc,12*SPRITE_SIZE-1 : ld (hl),0 : ldir
+    ret    
+
+restoreSprites
+
+;    ld ix,sprite11
+;    dup 12
+;    ld a,(ix) : or a : jp z,1f
+;    ld e,(ix+SPRITE.X) : ld d,(ix+SPRITE.Y);coords    
+;    call restoreTile
+;1:    
+;    ld bc,-SPRITE_SIZE : add ix,bc
+;    edup
+;    org $-5
+
+
+    ld ix,sprite0+SPRITE.RESTORE_BUFFER
+    dup 5
+    ld a,(ix-10) : or a : jp z,1f
+    ld e,(ix-9) : ld d,(ix-8);coords    
+    call restoreSpriteIX
+1:    
+    ld bc,+SPRITE_SIZE : add ix,bc
+    edup
+    org $-5
+
+    ret
+
+doSprites:
+    ;putSprites        
+    ld ix,sprite4
+    dup 5
+    ld a,(ix) : or a : jp z,1f
+    ld e,(ix+SPRITE.X) : ld d,(ix+SPRITE.Y) : ld a,(IX+SPRITE.FRAME) : call putSprite    
+1:    
+    ld bc,-SPRITE_SIZE : add ix,bc
+    edup
+    org $-5
+
+    ret
+
+doSpritesAnimations:
+    ld ix,spritesTable    
+reSprite:
+;check if sprite is enabled
+    ld a,(ix) : or a : jp z,doNextSprite
+    ld a,(ix+SPRITE.ENABLED_ANIMATION) : or a : jp z,doNextSprite
+
+    ;putSprite    
+    ;ld e,(ix+SPRITE.X) : ld d,(ix+SPRITE.Y) : ld a,(IX+SPRITE.FRAME) : call putSprite    
+;anim delay    
+;    ld a,(ix+SPRITE.ANIM_DELAY) : inc a : and 1 : ld (ix+SPRITE.ANIM_DELAY),a
+;    or a : jp z,skipSpriteAnimation
+;animate:
+    ld a,(ix+SPRITE.TICK) : inc a 
+    and 3
+;    cp 3 : jr nz,1f
+;    xor a
+;1:
+    ld (ix+SPRITE.TICK),a
+;    ld a,(ix+SPRITE.TICK)
+;one frame 3 cells
+	ld b,0
+	ld c,a : add a,a : add c : ld c,a	
+    ld l,(IX+SPRITE.ANIM_ADDR) : ld h,(IX+SPRITE.ANIM_ADDR+1) : add hl,bc : ex hl,de
+    ld l,(IX+SPRITE.ADDR) : ld h,(IX+SPRITE.ADDR+1)    
+	call animSprite
+skipSpriteAnimation:
+
+doNextSprite:    
+    ld bc,SPRITE_SIZE : add ix,bc
+    ld a,(ix) : cp 255 : ret z    
+    jp reSprite
+    
+
+;de - animation frame in speccy SCR format
+;hl - supa fast tiles CODE format
+animSprite:
+
+    ;ld de,tiles_page_2    
+    ;ld hl,tiles+29*160+1
+
+    dup 2
+    push hl : push de
+
+    RENDER_SPRITE_LINE
+
+    ;tiles ADD 32
+    pop de
+    ld hl,32 : add hl,de : ex de,hl
+    ;mega tiles ADD 29*32
+    pop hl
+    ld bc,29*32 : add hl,bc
+    edup
+
+    RENDER_SPRITE_LINE
+
+    ret
+
+;графику какого тайла скопировать куда
+;de - откуда
+;hl - куда
+;setTile:    
+;
+;    ld de,tiles_page_2
+;    ld bc,3
+;
+;    ld hl,tiles+29*160+1
+;
+;    dup 8
+;    ld a,(de) : ld (hl),a
+;    inc d : add hl,bc
+;    edup
+;    ld a,(de) : ld (hl),a
+;
+;ret    
+
+;a-sprite frame
+;de - coords e,-x ,d-y
+
+putSprite:
+
+    ex af,af
+    
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a
+
+    ;hl - point where put
+    ex af,af
+
+
+
+
+    ld de,64-3+1 
+
+    ld b,high priorities
+
+  ;  ld b,160;TOP TILES
+
+N=0    
+    dup 3
+    ld iyl,a : ld c,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),c : ld a,(bc) : or a : ld a,iyl : jp nz,1f    
+    ld (hl),a     
+1:    
+    inc l : inc a 
+N=N+1    
+    edup
+    org $-2
+    add hl,de
+    add 32-3+1
+
+    dup 3
+    ld iyl,a : ld c,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),c : ld a,(bc) : or a : ld a,iyl : jp nz,1f    
+    ;ld iyl,a : ld c,a : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : ld a,(bc) : or a : ld a,iyl : jp nz,1f
+  ;  ex af,af : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : cp b : ex af,af : jp c,1f
+    ;ld c,a : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : cp b : ld a,c : jp c,1f
+    ;ld c,a : ld a,(hl) : cp b : ld a,c : jp nc,1f
+    ld (hl),a 
+1:        
+    inc l : inc a
+N=N+1    
+    edup
+    org $-2
+
+
+    add hl,de
+    add 32-3+1
+    dup 3
+    ld iyl,a : ld c,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),c : ld a,(bc) : or a : ld a,iyl : jp nz,1f    
+    ;ld c,a : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : ld a,(bc) : or a : ld a,c : jp nz,1f
+  ;  ex af,af : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : cp b : ex af,af: jp c,1f
+    ;ld c,a : ld a,(hl) : ld (ix+SPRITE.RESTORE_BUFFER+N),a : cp b : ld a,c : jp c,1f
+    ;ld c,a : ld a,(hl) : cp b : ld a,c : jp nc,1f
+    ld (hl),a 
+1:       
+    inc l : inc a
+N=N+1    
+    edup
+    org $-2
+
+    ret
+
+;ix - pointer to 9 tiles forming a sprite 3x3
+;de - coords e-x ,d-y
+restoreSpriteIX:
+;save stack
+    ld (pscStack+1),sp
+
+    ld sp,ix
+
+    ;calc map addr
+    ld h,high mapLines
+    ld a,d : add a,a : ld l,a : ld a,(hl) : inc l : ld h,(hl): add e : ld l,a
+
+    ;hl - point where put
+    ld bc,64-3+1 ;map step
+
+    ;
+    pop de
+    ld (hl),e : inc l : ld (hl),d : inc l
+    pop de : ld (hl),e : add hl,bc : ld (hl),d : inc l
+    pop de : ld (hl),e : inc l : ld (hl),d : add hl,bc : pop de
+    ld (hl),e : inc l : ld (hl),d : inc l
+    pop de : ld (hl),e
+
+pscStack : ld sp,00000
+
+    ret
